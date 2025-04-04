@@ -176,7 +176,7 @@ export default function Home() {
 
     const inputValue = e.target.value;
     // Only accept input up to the display text length
-    const truncatedValue = inputValue.slice(0, displayText.length);
+    const truncatedValue = inputValue;
     setText(truncatedValue);
 
     // Estimate accuracy (actual verification happens server-side)
@@ -188,21 +188,34 @@ export default function Home() {
       Math.round(((100 - estimatedAccuracy) * displayText.length) / 100)
     );
 
-    // Check if test is complete based on word count
-    if (truncatedValue.length >= displayText.length) {
-      // Use setTimeout to ensure state update completes before finishing
-      setTimeout(() => finishTest(), 0);
+    // Check if test is complete based on total length including underscores
+    const nonUnderscoreLength = displayText
+      .split("")
+      .filter((char) => char !== "_").length;
+    const underscoreLength = displayText
+      .split("")
+      .filter((char) => char === "_").length;
+    const totalRequiredLength = nonUnderscoreLength + underscoreLength;
+
+    // Only finish if we have the complete text AND this isn't a backspace
+    if (
+      truncatedValue.length >= totalRequiredLength &&
+      inputValue.length >= truncatedValue.length
+    ) {
+      // Pass the final text value directly
+      setTimeout(() => finishTest(truncatedValue), 0);
     }
   };
 
-  const finishTest = () => {
+  const finishTest = (finalText?: string) => {
     if (isFinished) return;
 
     setIsFinished(true);
     const endTimeValue = Date.now();
     setEndTime(endTimeValue);
     const finalWpm = Math.round(
-      text.trim().split(/\s+/).length / ((endTimeValue - startTime) / 1000 / 60)
+      (finalText || text).trim().split(/\s+/).length /
+        ((endTimeValue - startTime) / 1000 / 60)
     );
     setWpm(finalWpm);
 
@@ -216,8 +229,8 @@ export default function Home() {
       clearInterval(timerRef.current);
     }
 
-    // Automatically submit the results
-    submitResults(endTimeValue);
+    // Automatically submit the results with the final text
+    submitResults(endTimeValue, finalText);
   };
 
   const resetTest = () => {
@@ -245,15 +258,16 @@ export default function Home() {
     }
   };
 
-  const submitResults = async (endTimeValue: number) => {
+  const submitResults = async (endTimeValue: number, finalText?: string) => {
     if (isSubmitting) return;
 
     setIsSubmitting(true);
     setErrorMessage(null);
+    const textToSubmit = finalText || text;
     try {
       const result = await verifyTypingTest({
         challengeId,
-        typedText: text,
+        typedText: textToSubmit,
         wpm,
         accuracy, // Server will recalculate this anyway
         timeMs: endTimeValue - startTime,

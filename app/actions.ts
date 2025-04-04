@@ -263,6 +263,8 @@ export async function verifyTypingTest(submission: TypingTestSubmission) {
     // Ensure exact text match
     const exactMatch = typedText === targetText;
 
+    console.log("typedText:", typedText);
+    console.log("targetText:", targetText);
     // Check if WPM is at least 500 in prod and 0 in dev
     const wpmMatch = DEV_DEPLOY ? wpm >= 0 : wpm >= 500;
 

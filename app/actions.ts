@@ -73,12 +73,11 @@ let extremelyLongWords = [
   "swagger",
 ];
 
+const DEV_DEPLOY = (process.env.NODE_ENV === "development" ||
+  ["preview", "development"].includes(process.env?.VERCEL_ENV!)
+
 // only in dev mode
-if (
-  process.env.WORDLIST_OVERRIDE &&
-  (process.env.NODE_ENV === "development" ||
-    ["preview", "development"].includes(process.env?.VERCEL_ENV!))
-) {
+if (process.env.WORDLIST_OVERRIDE && DEV_DEPLOY) {
   extremelyLongWords = process.env.WORDLIST_OVERRIDE.split(",");
 }
 
@@ -264,8 +263,7 @@ export async function verifyTypingTest(submission: TypingTestSubmission) {
     const exactMatch = typedText === targetText;
 
     // Check if WPM is at least 500 in prod and 0 in dev
-    const wpmMatch =
-      process.env.NODE_ENV === "production" ? wpm >= 500 : wpm >= 0;
+    const wpmMatch = DEV_DEPLOY ? wpm >= 0 : wpm >= 500;
 
     // Check if accuracy is at least 80%
     const accuracyMatch = serverAccuracy >= 80;

@@ -74,7 +74,11 @@ let extremelyLongWords = [
 ];
 
 // only in dev mode
-if (process.env.WORDLIST_OVERRIDE && process.env.NODE_ENV === "development") {
+if (
+  process.env.WORDLIST_OVERRIDE &&
+  (process.env.NODE_ENV === "development" ||
+    ["preview", "development"].includes(process.env?.VERCEL_ENV!))
+) {
   extremelyLongWords = process.env.WORDLIST_OVERRIDE.split(",");
 }
 

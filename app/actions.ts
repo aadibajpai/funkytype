@@ -11,7 +11,7 @@ export interface ChallengeData {
 }
 
 // Extremely long and challenging words
-const extremelyLongWords = [
+let extremelyLongWords = [
   "pneumonoultramicroscopicsilicovolcanoconiosis",
   "supercalifragilisticexpialidocious",
   "antidisestablishmentarianism",
@@ -25,7 +25,7 @@ const extremelyLongWords = [
   "hepaticocholangiogastrostomy",
   "incomprehensibilities",
   "honorificabilitudinitatibus",
-  "microspectrophotometrically",
+  "neuroplasticity",
   "extraordinarily",
   "characteristically",
   "enthusiastically",
@@ -72,6 +72,11 @@ const extremelyLongWords = [
   "cybersecurity",
   "swagger",
 ];
+
+// only in dev mode
+if (process.env.WORDLIST_OVERRIDE && process.env.NODE_ENV === "development") {
+  extremelyLongWords = process.env.WORDLIST_OVERRIDE.split(",");
+}
 
 // In-memory store as fallback for when Redis fails
 const inMemoryStore = new Map<string, ChallengeData>();
@@ -254,8 +259,9 @@ export async function verifyTypingTest(submission: TypingTestSubmission) {
     // Ensure exact text match
     const exactMatch = typedText === targetText;
 
-    // Check if WPM is at least 500
-    const wpmMatch = wpm >= 0;
+    // Check if WPM is at least 500 in prod and 0 in dev
+    const wpmMatch =
+      process.env.NODE_ENV === "production" ? wpm >= 500 : wpm >= 0;
 
     // Check if accuracy is at least 80%
     const accuracyMatch = serverAccuracy >= 80;
@@ -265,7 +271,7 @@ export async function verifyTypingTest(submission: TypingTestSubmission) {
       targetLength: targetText.length,
       exactMatch,
       wpm,
-      wpmMatch: wpm >= 0,
+      wpmMatch: wpm >= 500,
       serverAccuracy,
       accuracyMatch: serverAccuracy >= 80,
     });
@@ -275,7 +281,7 @@ export async function verifyTypingTest(submission: TypingTestSubmission) {
       // Return success with the flag
       return {
         success: true,
-        flag: "squ1rrel{guessable}",
+        flag: process.env.FLAG,
       };
     }
 

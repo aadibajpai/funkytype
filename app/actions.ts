@@ -73,8 +73,9 @@ let extremelyLongWords = [
   "swagger",
 ];
 
-const DEV_DEPLOY = (process.env.NODE_ENV === "development" ||
-  ["preview", "development"].includes(process.env?.VERCEL_ENV!)
+const DEV_DEPLOY =
+  process.env.NODE_ENV === "development" ||
+  ["preview", "development"].includes(process.env?.VERCEL_ENV!);
 
 // only in dev mode
 if (process.env.WORDLIST_OVERRIDE && DEV_DEPLOY) {

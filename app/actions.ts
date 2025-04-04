@@ -107,7 +107,7 @@ async function storeChallenge(id: string, data: ChallengeData) {
   try {
     // Try to use Redis
     const redis = await getRedisClient();
-    await redis.set(`challenge:${id}`, JSON.stringify(data), { EX: 30 }); // 30 second expiration
+    await redis.set(`challenge:${id}`, JSON.stringify(data), { EX: 300 }); // 5 minute expiration
     return true;
   } catch (error) {
     console.error("Redis storage failed, using in-memory fallback:", error);
@@ -115,9 +115,9 @@ async function storeChallenge(id: string, data: ChallengeData) {
     inMemoryStore.set(id, data);
 
     // Clean up old challenges
-    const thirtySecondsAgo = Date.now() - 30 * 1000;
+    const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
     for (const [key, challenge] of inMemoryStore.entries()) {
-      if (challenge.timestamp < thirtySecondsAgo) {
+      if (challenge.timestamp < fiveMinutesAgo) {
         inMemoryStore.delete(key);
       }
     }
